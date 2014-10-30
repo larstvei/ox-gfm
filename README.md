@@ -1,7 +1,7 @@
 #Github Flavored Markdown exporter for Org Mode
 
 This is a small exporter based on the Markdown exporter already existing in
-org mode. It should support the features [listed here](https://help.github.com/articles/github-flavored-markdown/).
+Org mode. It should support the features [listed here](https://help.github.com/articles/github-flavored-markdown/).
 
 The exporter has made it's way into to the `contrib` section of Org, and can
 be found here:

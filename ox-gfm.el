@@ -40,13 +40,6 @@
   :version "24.4"
   :package-version '(Org . "8.0"))
 
-(defcustom org-gfm-lang '(("emacs-lisp" . "lisp") ("elisp" . "lisp"))
-  "Alist of languages that are not recognized by Github, to
-  languages that are. Emacs lisp is a good example of this, where
-  we can use lisp as a nice replacement."
-  :group 'org-export-gfm)
-
-
 
 ;;; Define Back-End
 
@@ -77,7 +70,6 @@
 format. CONTENTS is nil.  INFO is a plist used as a communication
 channel."
   (let* ((lang (org-element-property :language src-block))
-         (lang (or (assoc-default lang org-gfm-lang) lang))
          (code (org-export-format-code-default src-block info))
          (prefix (concat "```" lang "\n"))
          (suffix "```"))
