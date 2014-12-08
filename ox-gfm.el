@@ -57,7 +57,10 @@
                 (org-open-file (org-gfm-export-to-markdown nil s v)))))))
   :translate-alist '((inner-template . org-gfm-inner-template)
                      (strike-through . org-gfm-strike-through)
-                     (src-block . org-gfm-src-block)))
+                     (src-block . org-gfm-src-block)
+                     (table . org-gfm-table)
+                     (table-cell . org-gfm-table-cell)
+                     (table-row . org-gfm-table-row)))
 
 
 
@@ -78,7 +81,7 @@ channel."
 
 ;;;; Strike-Through
 
-(defun org-html-strike-through (strike-through contents info)
+(defun org-gfm-strike-through (strike-through contents info)
   "Transcode STRIKE-THROUGH from Org to Markdown (GFM).
 CONTENTS is the text with strike-through markup.  INFO is a plist
 holding contextual information."
@@ -93,8 +96,13 @@ plist used as a communication channel."
                  (org-export-get-alt-title headline info) info))
          (level (1- (org-element-property :level headline)))
          (indent (concat (make-string (* level 2) ? )))
-         (ref-str (replace-regexp-in-string " " "-" (downcase title))))
-    (concat indent "- [" title "]" "(#" ref-str ")")))
+         (anchor (or (org-element-property :custom_id headline)
+                     (concat "sec-" (mapconcat 'number-to-string
+                                               (org-export-get-headline-number
+                                                headline info) "-")))))
+    (concat indent "- [" title "]" "(#" anchor ")")))
+
+
 
 
 ;;;; Template
@@ -109,6 +117,18 @@ holding export options."
          (toc-tail (if headlines "\n\n" "")))
     (concat toc-string toc-tail contents)))
 
+;;;; Table
+
+(defun org-gfm-table (table contents info)
+  (org-export-expand table contents t)
+
+  )
+
+(defun org-gfm-table-cell (table-cell contents info)
+  (org-export-expand table-cell contents t))
+
+(defun org-gfm-table-row (table-row contents info)
+  (org-export-expand table-row contents t))
 
 
 ;;; Interactive function
