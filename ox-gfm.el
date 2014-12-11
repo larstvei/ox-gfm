@@ -57,10 +57,7 @@
                 (org-open-file (org-gfm-export-to-markdown nil s v)))))))
   :translate-alist '((inner-template . org-gfm-inner-template)
                      (strike-through . org-gfm-strike-through)
-                     (src-block . org-gfm-src-block)
-                     (table . org-gfm-table)
-                     (table-cell . org-gfm-table-cell)
-                     (table-row . org-gfm-table-row)))
+                     (src-block . org-gfm-src-block)))
 
 
 
@@ -117,18 +114,6 @@ holding export options."
          (toc-tail (if headlines "\n\n" "")))
     (concat toc-string toc-tail contents)))
 
-;;;; Table
-
-(defun org-gfm-table (table contents info)
-  (org-export-expand table contents t)
-
-  )
-
-(defun org-gfm-table-cell (table-cell contents info)
-  (org-export-expand table-cell contents t))
-
-(defun org-gfm-table-row (table-row contents info)
-  (org-export-expand table-row contents t))
 
 
 ;;; Interactive function
