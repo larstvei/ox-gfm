@@ -183,8 +183,4 @@ Return output file's name."
 
 (provide 'ox-gfm)
 
-;; Local variables:
-;; generated-autoload-file: "org-loaddefs.el"
-;; End:
-
 ;;; ox-gfm.el ends here
