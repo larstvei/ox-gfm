@@ -57,7 +57,10 @@
                 (org-open-file (org-gfm-export-to-markdown nil s v)))))))
   :translate-alist '((inner-template . org-gfm-inner-template)
                      (strike-through . org-gfm-strike-through)
-                     (src-block . org-gfm-src-block)))
+                     (src-block . org-gfm-src-block)
+                     (table-cell . org-gfm-table-cell)
+                     (table-row . org-gfm-table-row)
+                     (table . org-gfm-table)))
 
 
 
@@ -83,6 +86,99 @@ channel."
 CONTENTS is the text with strike-through markup.  INFO is a plist
 holding contextual information."
   (format "~~%s~~" contents))
+
+
+;;;; Table-Cell
+
+(defvar width-cookies nil)
+(defvar width-cookies-table nil)
+
+(defun org-gfm-table-col-width (table column info)
+  "Return width of TABLE at given COLUMN. INFO is a plist used as
+communication channel. Width of a column is determined either by
+inquerying `width-cookies' in the column, or by the maximum cell with in
+the column."
+  (let ((cookie (when (hash-table-p width-cookies)
+                  (gethash column width-cookies))))
+    (if (and (eq table width-cookies-table)
+             (not (eq nil cookie)))
+        cookie
+      (progn
+        (unless (and (eq table width-cookies-table)
+                     (hash-table-p width-cookies))
+          (setq width-cookies (make-hash-table))
+          (setq width-cookies-table table))
+        (let ((max-width 0)
+              (specialp (org-export-table-has-special-column-p table)))
+          (org-element-map
+              table
+              'table-row
+            (lambda (row)
+              (setq max-width
+                    (max (length
+                          (org-export-data
+                           (org-element-contents
+                            (elt ;(if specialp (car (org-element-contents row))
+                                   (org-element-contents row);)
+                                 column))
+                           info))
+                         max-width)))
+            info)
+          (puthash column max-width width-cookies))))))
+          
+
+
+(defun org-gfm-table-cell (table-cell contents info)
+  "Transcode TABLE-CELL element from Org into GFM. CONTENTS is content
+of the cell. INFO is a plist used as a communication channel."
+  (let* ((table (org-export-get-parent-table table-cell))
+         (column (cdr (org-export-table-cell-address table-cell info)))
+         (width (org-gfm-table-col-width table column info))
+         (left-border (if (org-export-table-cell-starts-colgroup-p table-cell info) "| " " "))
+         (right-border " |")
+         (data (or contents "")))
+    (setq contents
+          (concat data
+                  (make-string (- width (string-width data))
+                               ?\s)))
+    (concat left-border contents right-border)))
+
+
+;;;; Table-Row
+
+(defun org-gfm-table-row (table-row contents info)
+  "Transcode TABLE-ROW element from Org into GFM. CONTENTS is cell
+contents of TABLE-ROW. INFO is a plist used as a communication
+channel."
+  (when (eq 'rule (org-element-property :type table-row))
+    (let* ((table (org-export-get-parent-table table-row))
+           (left-border "| ")
+           (vertical " | ")
+           (right-border " |")
+           (build-rule
+            (function
+             (lambda (col)
+               (let ((max-width (org-gfm-table-col-width table col info)))
+                 (make-string max-width ?-)))))
+           (cols (cdr (org-export-table-dimensions table info))))
+      (setq contents
+            (concat left-border
+                    (mapconcat (lambda (col) (funcall build-rule col))
+                               (number-sequence 0 (- cols 1))
+                               vertical)
+                    right-border))))
+  contents)
+
+
+
+;;;; Table
+
+(defun org-gfm-table (table contents info)
+  "Transcode TABLE element into Github Flavored Markdown table.
+CONTENTS is the contents of the table. INFO is a plist holding
+contextual information."
+  (replace-regexp-in-string "\n\n" "\n" contents))
+
 
 ;;;; Table of contents
 
