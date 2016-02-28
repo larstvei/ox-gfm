@@ -93,9 +93,9 @@ holding contextual information."
 (defvar width-cookies nil)
 (defvar width-cookies-table nil)
 
-(defconst gfm-table-left-border "| ")
+(defconst gfm-table-left-border "|")
 (defconst gfm-table-right-border " |")
-(defconst gfm-table-separator " | ")
+(defconst gfm-table-separator " |")
 
 (defun org-gfm-table-col-width (table column info)
   "Return width of TABLE at given COLUMN. INFO is a plist used as
@@ -135,7 +135,7 @@ the column."
   "Return a function to build horizontal line in TABLE with given
 CHAR. INFO is a plist used as a communication channel."
   `(lambda (col)
-     (let ((max-width (org-gfm-table-col-width table col info)))
+     (let ((max-width (max 3 (org-gfm-table-col-width table col info))))
        (when (< max-width 1)
          (setq max-width 1))
        (make-string max-width ,char))))
@@ -154,7 +154,7 @@ of the cell. INFO is a plist used as a communication channel."
          (data (or contents "")))
     (setq contents
           (concat data
-                  (make-string (- width (string-width data))
+                  (make-string (max 0 (- width (string-width data)))
                                ?\s)))
     (concat left-border contents right-border)))
 
