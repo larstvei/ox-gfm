@@ -192,8 +192,7 @@ channel."
 CONTENTS is the contents of the table. INFO is a plist holding
 contextual information."
   (let* ((rows (org-element-map table 'table-row 'identity info))
-         (no-header (or (<= (length rows) 1)
-                        (not (eq 'rule (org-element-property :type (cadr rows))))))
+         (no-header (or (<= (length rows) 1)))
          (cols (cdr (org-export-table-dimensions table info)))
          (build-dummy-header
           (function
