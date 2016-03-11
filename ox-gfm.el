@@ -56,6 +56,7 @@
               (if a (org-gfm-export-to-markdown t s v)
                 (org-open-file (org-gfm-export-to-markdown nil s v)))))))
   :translate-alist '((inner-template . org-gfm-inner-template)
+		     (paragraph . org-gfm-paragraph)
                      (strike-through . org-gfm-strike-through)
                      (src-block . org-gfm-src-block)
                      (table-cell . org-gfm-table-cell)
@@ -65,6 +66,22 @@
 
 
 ;;; Transcode Functions
+
+;;;; Paragraph
+
+(defun org-gfm-paragraph (paragraph contents _info)
+  "Transcode PARAGRAPH element into Github Flavoured Markdown format.
+CONTENTS is the paragraph contents.  INFO is a plist used as a
+communication channel."
+  (let ((contents
+         (concat (replace-regexp-in-string "\\\n" "" contents nil t)
+                 "\n")))
+    (let ((first-object (car (org-element-contents paragraph))))
+      ;; If paragraph starts with a #, protect it.
+      (if (and (stringp first-object) (string-match "\\`#" first-object))
+          (replace-regexp-in-string "\\`#" "\\#" contents nil t)
+        contents))))
+
 
 ;;;; Src Block
 
