@@ -74,7 +74,7 @@
 CONTENTS is the paragraph contents.  INFO is a plist used as a
 communication channel."
   (let ((contents
-         (concat (replace-regexp-in-string "\\\n" "" contents nil t)
+         (concat (mapconcat 'identity (split-string contents) " ")
                  "\n")))
     (let ((first-object (car (org-element-contents paragraph))))
       ;; If paragraph starts with a #, protect it.
