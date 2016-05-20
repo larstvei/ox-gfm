@@ -69,18 +69,18 @@
 
 ;;;; Paragraph
 
-(defun org-gfm-paragraph (paragraph contents _info)
+(defun org-gfm-paragraph (paragraph contents info)
   "Transcode PARAGRAPH element into Github Flavoured Markdown format.
 CONTENTS is the paragraph contents.  INFO is a plist used as a
 communication channel."
-  (let ((contents
-         (concat (mapconcat 'identity (split-string contents) " ")
+  (unless (plist-get info :preserve-breaks)
+    (setq contents (concat (mapconcat 'identity (split-string contents) " ")
                  "\n")))
-    (let ((first-object (car (org-element-contents paragraph))))
-      ;; If paragraph starts with a #, protect it.
-      (if (and (stringp first-object) (string-match "\\`#" first-object))
-          (replace-regexp-in-string "\\`#" "\\#" contents nil t)
-        contents))))
+  (let ((first-object (car (org-element-contents paragraph))))
+    ;; If paragraph starts with a #, protect it.
+    (if (and (stringp first-object) (string-match "\\`#" first-object))
+	(replace-regexp-in-string "\\`#" "\\#" contents nil t)
+      contents)))
 
 
 ;;;; Src Block
