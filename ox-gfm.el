@@ -61,7 +61,8 @@
                      (src-block . org-gfm-src-block)
                      (table-cell . org-gfm-table-cell)
                      (table-row . org-gfm-table-row)
-                     (table . org-gfm-table)))
+                     (table . org-gfm-table)
+		     (headline . org-gfm-headline)))
 
 
 
@@ -239,13 +240,71 @@ plist used as a communication channel."
                  (org-export-get-alt-title headline info) info))
          (level (1- (org-element-property :level headline)))
          (indent (concat (make-string (* level 2) ? )))
-         (anchor (or (org-element-property :custom_id headline)
-                     (concat "sec-" (mapconcat 'number-to-string
-                                               (org-export-get-headline-number
-                                                headline info) "-")))))
+         (anchor (org-gfm-create-link-id headline info)))
     (concat indent "- [" title "]" "(#" anchor ")")))
 
 
+(defun org-gfm-create-link-id (headline info)
+  "Return an appropriate link ID for a table of contents.
+INFO is a plist used as a commnication channel."
+  (or (org-element-property :CUSTOM_ID headline)
+      (concat "sec-" (mapconcat 'number-to-string
+				(org-export-get-headline-number
+				 headline info) "-"))))
+
+
+(defun org-gfm-headline (headline contents info)
+  "Transcode HEADLINE element into GFM.
+CONTENTS is the headline contents.  INFO is a plist used as
+a communication channel."
+  (unless (org-element-property :footnote-section-p headline)
+    (let* ((level (org-export-get-relative-level headline info))
+	   (title (org-export-data (org-element-property :title headline) info))
+	   (todo (and (plist-get info :with-todo-keywords)
+		      (let ((todo (org-element-property :todo-keyword
+							headline)))
+			(and todo (concat (org-export-data todo info) " ")))))
+	   (tags (and (plist-get info :with-tags)
+		      (let ((tag-list (org-export-get-tags headline info)))
+			(and tag-list
+			     (format "     :%s:"
+				     (mapconcat 'identity tag-list ":"))))))
+	   (priority
+	    (and (plist-get info :with-priority)
+		 (let ((char (org-element-property :priority headline)))
+		   (and char (format "[#%c] " char)))))
+	   (anchor
+	    (and (plist-get info :with-toc)
+		 (format "<a id=\"%s\"></a>"
+			 (org-gfm-create-link-id headline info))))
+	   ;; Headline text without tags.
+	   (heading (concat todo priority title))
+	   (style (plist-get info :md-headline-style)))
+      (cond
+       ;; Cannot create a headline.  Fall-back to a list.
+       ((or (org-export-low-level-p headline info)
+	    (not (memq style '(atx setext)))
+	    (and (eq style 'atx) (> level 6))
+	    (and (eq style 'setext) (> level 2)))
+	(let ((bullet
+	       (if (not (org-export-numbered-headline-p headline info)) "-"
+		 (concat (number-to-string
+			  (car (last (org-export-get-headline-number
+				      headline info))))
+			 "."))))
+	  (concat bullet (make-string (- 4 (length bullet)) ?\s) heading tags
+		  "\n\n"
+		  (and contents
+		       (replace-regexp-in-string "^" "    " contents)))))
+       ;; Use "Setext" style.
+       ((eq style 'setext)
+	(concat heading tags anchor "\n"
+		(make-string (length heading) (if (= level 1) ?= ?-))
+		"\n\n"
+		contents))
+       ;; Use "atx" style.
+       (t (concat (make-string level ?#) " " heading tags anchor "\n\n"
+		  contents))))))
 
 
 ;;;; Template
