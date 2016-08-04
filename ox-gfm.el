@@ -254,7 +254,7 @@ holding export options."
          (headlines (and depth (org-export-collect-headlines info depth)))
          (toc-string (or (mapconcat 'org-gfm-format-toc headlines "\n") ""))
          (toc-tail (if headlines "\n\n" "")))
-    (concat toc-string toc-tail contents "\n" (org-html-footnote-section info))))
+    (org-trim (concat toc-string toc-tail contents "\n" (org-html-footnote-section info)))))
         
 
 
