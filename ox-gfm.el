@@ -238,9 +238,7 @@ plist used as a communication channel."
          (level (1- (org-element-property :level headline)))
          (indent (concat (make-string (* level 2) ? )))
          (anchor (or (org-element-property :custom_id headline)
-                     (concat "sec-" (mapconcat 'number-to-string
-                                               (org-export-get-headline-number
-                                                headline info) "-")))))
+                     (org-export-get-reference headline info))))
     (concat indent "- [" title "]" "(#" anchor ")")))
 
 
