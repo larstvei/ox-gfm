@@ -242,6 +242,36 @@ plist used as a communication channel."
     (concat indent "- [" title "]" "(#" anchor ")")))
 
 
+;;;; Footnote section
+
+(defun org-gfm-footnote-section (info)
+  "Format the footnote section.
+INFO is a plist used as a communication channel."
+  (let* ((fn-alist (org-export-collect-footnote-definitions info))
+         (fn-alist
+          (loop for (n type raw) in fn-alist collect
+                (cons n (org-trim (org-export-data raw info))))))
+    (when fn-alist
+      (format
+       "## %s\n%s"
+       "Footnotes"
+       (format
+        "\n%s\n"
+        (mapconcat
+         (lambda (fn)
+           (let ((n (car fn)) (def (cdr fn)))
+             (format
+              "%s %s\n"
+              (format
+               (plist-get info :html-footnote-format)
+               (org-html--anchor
+                (format "fn.%d" n)
+                n
+                (format " class=\"footnum\" href=\"#fnr.%d\"" n)
+                info))
+              def)))
+         fn-alist
+         "\n"))))))
 
 
 ;;;; Template
@@ -254,7 +284,7 @@ holding export options."
          (headlines (and depth (org-export-collect-headlines info depth)))
          (toc-string (or (mapconcat 'org-gfm-format-toc headlines "\n") ""))
          (toc-tail (if headlines "\n\n" "")))
-    (org-trim (concat toc-string toc-tail contents "\n" (org-html-footnote-section info)))))
+    (org-trim (concat toc-string toc-tail contents "\n" (org-gfm-footnote-section info)))))
         
 
 
