@@ -248,8 +248,8 @@ plist used as a communication channel."
 INFO is a plist used as a communication channel."
   (let* ((fn-alist (org-export-collect-footnote-definitions info))
          (fn-alist
-          (loop for (n type raw) in fn-alist collect
-                (cons n (org-trim (org-export-data raw info))))))
+          (cl-loop for (n type raw) in fn-alist collect
+                   (cons n (org-trim (org-export-data raw info))))))
     (when fn-alist
       (format
        "## %s\n%s"
