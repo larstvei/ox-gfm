@@ -273,14 +273,33 @@ contextual information."
 
 ;;;; Table of contents
 
-(defun org-gfm-format-toc (headline)
+(defun org-gfm-anchor-from-title (title)
+  (replace-regexp-in-string "[^a-z\-]" "" (downcase (replace-regexp-in-string "[ ]" "-" title))))
+
+(defun org-gfm-anchor-from-headline (headline)
+  (org-gfm-anchor-from-title (org-export-data (org-export-get-alt-title headline info) info)))
+
+(defun org-gfm-put-headline-dup (acc headline anchor counter)
+  (if (assoc (concat anchor "-" (number-to-string counter)) acc)
+      (org-gfm-put-headline-dup acc headline anchor (1+ counter))
+    (cons (cons (concat anchor "-" (number-to-string counter)) headline) acc)))
+
+(defun org-gfm-put-headline (acc headline)
+  (let* ((anchor (org-gfm-anchor-from-headline headline)))
+    (if (assoc anchor acc)
+        (org-gfm-put-headline-dup acc headline anchor 1)
+      (cons (cons anchor headline) acc))))
+
+
+(defun org-gfm-format-toc (anchor-and-headline)
   "Return an appropriate table of contents entry for HEADLINE. INFO is a
 plist used as a communication channel."
-  (let* ((title (org-export-data
+  (let* ((headline (cdr anchor-and-headline))
+         (title (org-export-data
                  (org-export-get-alt-title headline info) info))
          (level (1- (org-element-property :level headline)))
          (indent (concat (make-string (* level 2) ? )))
-         (anchor (replace-regexp-in-string "[^a-z\-]" "" (downcase (replace-regexp-in-string "[ ]" "-" title)))))
+         (anchor (car anchor-and-headline)))
     (concat indent "- [" title "]" "(#" anchor ")")))
 
 
@@ -324,7 +343,8 @@ CONTENTS is the transcoded contents string.  INFO is a plist
 holding export options."
   (let* ((depth (plist-get info :with-toc))
          (headlines (and depth (org-export-collect-headlines info depth)))
-         (toc-string (or (mapconcat 'org-gfm-format-toc headlines "\n") ""))
+         (anchors-to-headlines (reverse (seq-reduce 'org-gfm-put-headline headlines '())))
+         (toc-string (or (mapconcat 'org-gfm-format-toc anchors-to-headlines "\n") ""))
          (toc-tail (if headlines "\n\n" "")))
     (org-trim (concat toc-string toc-tail contents "\n" (org-gfm-footnote-section info)))))
         
