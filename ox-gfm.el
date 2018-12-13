@@ -274,7 +274,7 @@ contextual information."
 ;;;; Table of contents
 
 (defun org-gfm-anchor-from-title (title)
-  (replace-regexp-in-string "[^a-z\-]" "" (downcase (replace-regexp-in-string "[ ]" "-" title))))
+  (replace-regexp-in-string "[^a-z\-_]" "" (downcase (replace-regexp-in-string "[ ]" "-" title))))
 
 (defun org-gfm-anchor-from-headline (headline)
   (org-gfm-anchor-from-title (org-export-data (org-export-get-alt-title headline info) info)))
