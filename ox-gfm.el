@@ -56,6 +56,7 @@
   :translate-alist '((inner-template . org-gfm-inner-template)
                      (paragraph . org-gfm-paragraph)
                      (strike-through . org-gfm-strike-through)
+                     (example-block . org-gfm-example-block)
                      (src-block . org-gfm-src-block)
                      (table-cell . org-gfm-table-cell)
                      (table-row . org-gfm-table-row)
@@ -91,6 +92,10 @@ channel."
          (prefix (concat "```" lang "\n"))
          (suffix "```"))
     (concat prefix code suffix)))
+
+;;;; Example Block
+
+(defalias 'org-gfm-example-block #'org-gfm-src-block)
 
 
 ;;;; Strike-Through
@@ -284,7 +289,7 @@ holding export options."
          (toc-string (or (mapconcat 'org-gfm-format-toc headlines "\n") ""))
          (toc-tail (if headlines "\n\n" "")))
     (org-trim (concat toc-string toc-tail contents "\n" (org-gfm-footnote-section info)))))
-        
+
 
 
 
