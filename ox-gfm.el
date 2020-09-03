@@ -86,9 +86,8 @@ communication channel."
 ;;;; Src Block
 
 (defun org-gfm-src-block (src-block contents info)
-  "Transcode SRC-BLOCK element into Github Flavored Markdown
-format. CONTENTS is nil.  INFO is a plist used as a communication
-channel."
+  "Transcode SRC-BLOCK element into Github Flavored Markdown format.
+CONTENTS is nil.  INFO is a plist used as a communication channel."
   (let* ((lang (org-element-property :language src-block))
          (code (org-export-format-code-default src-block info))
          (prefix (concat "```" lang "\n"))
@@ -115,10 +114,10 @@ holding contextual information."
 (defconst gfm-table-separator " |")
 
 (defun org-gfm-table-col-width (table column info)
-  "Return width of TABLE at given COLUMN. INFO is a plist used as
-communication channel. Width of a column is determined either by
-inquerying `width-cookies' in the column, or by the maximum cell with in
-the column."
+  "Return width of TABLE at given COLUMN.
+INFO is a plist used as communication channel.
+Width of a column is determined either by inquerying `width-cookies'
+in the column, or by the maximum cell with in the column."
   (let ((cookie (when (hash-table-p width-cookies)
                   (gethash column width-cookies))))
     (if (and (eq table width-cookies-table)
@@ -149,8 +148,8 @@ the column."
 
 
 (defun org-gfm-make-hline-builder (table info char)
-  "Return a function to build horizontal line in TABLE with given
-CHAR. INFO is a plist used as a communication channel."
+  "Return a function to build horizontal line in TABLE with given CHAR.
+INFO is a plist used as a communication channel."
   `(lambda (col)
      (let ((max-width (max 3 (org-gfm-table-col-width table col info))))
        (when (< max-width 1)
@@ -161,8 +160,9 @@ CHAR. INFO is a plist used as a communication channel."
 ;;;; Table-Cell
 
 (defun org-gfm-table-cell (table-cell contents info)
-  "Transcode TABLE-CELL element from Org into GFM. CONTENTS is content
-of the cell. INFO is a plist used as a communication channel."
+  "Transcode TABLE-CELL element from Org into GFM.
+CONTENTS is content of the cell.
+INFO is a plist used as a communication channel."
   (let* ((table (org-export-get-parent-table table-cell))
          (column (cdr (org-export-table-cell-address table-cell info)))
          (width (org-gfm-table-col-width table column info))
@@ -179,9 +179,9 @@ of the cell. INFO is a plist used as a communication channel."
 ;;;; Table-Row
 
 (defun org-gfm-table-row (table-row contents info)
-  "Transcode TABLE-ROW element from Org into GFM. CONTENTS is cell
-contents of TABLE-ROW. INFO is a plist used as a communication
-channel."
+  "Transcode TABLE-ROW element from Org into GFM.
+CONTENTS is cell contents of TABLE-ROW.
+INFO is a plist used as a communication channel."
   (let ((table (org-export-get-parent-table table-row)))
     (when (and (eq 'rule (org-element-property :type table-row))
                ;; In GFM, rule is valid only at second row.
@@ -206,8 +206,8 @@ channel."
 
 (defun org-gfm-table (table contents info)
   "Transcode TABLE element into Github Flavored Markdown table.
-CONTENTS is the contents of the table. INFO is a plist holding
-contextual information."
+CONTENTS is the contents of the table.
+INFO is a plist holding contextual information."
   (let* ((rows (org-element-map table 'table-row 'identity info))
          (no-header (or (<= (length rows) 1)))
          (cols (cdr (org-export-table-dimensions table info)))
@@ -233,8 +233,8 @@ contextual information."
 ;;;; Table of contents
 
 (defun org-gfm-format-toc (headline)
-  "Return an appropriate table of contents entry for HEADLINE. INFO is a
-plist used as a communication channel."
+  "Return an appropriate table of contents entry for HEADLINE.
+INFO is a plist used as a communication channel."
   (let* ((title (org-export-data
                  (org-export-get-alt-title headline info) info))
          (level (1- (org-element-property :level headline)))
@@ -324,10 +324,10 @@ non-nil."
 
 ;;;###autoload
 (defun org-gfm-convert-region-to-md ()
-  "Assume the current region has org-mode syntax, and convert it
-to Github Flavored Markdown.  This can be used in any buffer.
-For example, you can write an itemized list in org-mode syntax in
-a Markdown buffer and use this command to convert it."
+  "Assume `org-mode' syntax, and convert it to Github Flavored Markdown.
+This can be used in any buffer.  For example, you can write an
+itemized list in `org-mode' syntax in a Markdown buffer and use
+this command to convert it."
   (interactive)
   (org-export-replace-region-by 'gfm))
 
