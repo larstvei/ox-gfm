@@ -3,7 +3,10 @@
 ;; Copyright (C) 2014-2017 Lars Tveito
 
 ;; Author: Lars Tveito
+;; Version: 1.0
 ;; Keywords: org, wp, markdown, github
+;; Package-Requires: ((emacs "26.1") (org "9.0"))
+;; URL: https://github.com/larstvei/ox-gfm
 
 ;; This file is not part of GNU Emacs.
 
