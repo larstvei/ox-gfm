@@ -1,6 +1,8 @@
 ;;; ox-gfm.el --- Github Flavored Markdown Back-End for Org Export Engine
 
 ;; Copyright (C) 2014-2017 Lars Tveito
+;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2018 Aaron Muir Hamilton
 
 ;; Author: Lars Tveito
 ;; Keywords: org, wp, markdown, github
@@ -53,7 +55,8 @@
             (lambda (a s v b)
               (if a (org-gfm-export-to-markdown t s v)
                 (org-open-file (org-gfm-export-to-markdown nil s v)))))))
-  :translate-alist '((inner-template . org-gfm-inner-template)
+  :translate-alist '((headline . org-gfm-headline)
+                     (inner-template . org-gfm-inner-template)
                      (paragraph . org-gfm-paragraph)
                      (strike-through . org-gfm-strike-through)
                      (example-block . org-gfm-example-block)
@@ -65,6 +68,47 @@
 
 
 ;;; Transcode Functions
+
+;;;; Headline
+(defun org-gfm-headline (headline contents info)
+  "Transcode HEADLINE element into Markdown format.
+CONTENTS is the headline contents.  INFO is a plist used as
+a communication channel."
+  (unless (org-element-property :footnote-section-p headline)
+    (let* ((level (org-export-get-relative-level headline info))
+	   (title (org-export-data (org-element-property :title headline) info))
+	   (todo (and (plist-get info :with-todo-keywords)
+		      (let ((todo (org-element-property :todo-keyword
+							headline)))
+			(and todo (concat (org-export-data todo info) " ")))))
+	   (tags (and (plist-get info :with-tags)
+		      (let ((tag-list (org-export-get-tags headline info)))
+			(and tag-list
+			     (format "     :%s:"
+				     (mapconcat 'identity tag-list ":"))))))
+	   (priority
+	    (and (plist-get info :with-priority)
+		 (let ((char (org-element-property :priority headline)))
+		   (and char (format "[#%c] " char)))))
+	   ;; Headline text without tags.
+	   (heading (concat todo priority title))
+	   (style (plist-get info :md-headline-style)))
+      (cond
+       ;; Cannot create a headline.  Fall-back to a list.
+       ((or (org-export-low-level-p headline info)
+	    (not (memq style '(atx setext)))
+	    (and (eq style 'atx) (> level 6))
+	    (and (eq style 'setext) (> level 2)))
+	(let ((bullet
+	       (if (not (org-export-numbered-headline-p headline info)) "-"
+		 (concat (number-to-string
+			  (car (last (org-export-get-headline-number
+				      headline info))))
+			 "."))))
+	  (concat bullet (make-string (- 4 (length bullet)) ?\s) heading tags "\n\n"
+		  (and contents (replace-regexp-in-string "^" "    " contents)))))
+       (t
+	(concat (org-md--headline-title style level heading tags) contents))))))
 
 ;;;; Paragraph
 
@@ -234,15 +278,33 @@ contextual information."
 
 ;;;; Table of contents
 
-(defun org-gfm-format-toc (headline)
+(defun org-gfm-anchor-from-title (title)
+  (replace-regexp-in-string "[^a-z\-_]" "" (downcase (replace-regexp-in-string "[ ]" "-" title))))
+
+(defun org-gfm-anchor-from-headline (headline)
+  (org-gfm-anchor-from-title (org-export-data (org-export-get-alt-title headline info) info)))
+
+(defun org-gfm-put-headline-dup (acc headline anchor counter)
+  (if (assoc (concat anchor "-" (number-to-string counter)) acc)
+      (org-gfm-put-headline-dup acc headline anchor (1+ counter))
+    (cons (cons (concat anchor "-" (number-to-string counter)) headline) acc)))
+
+(defun org-gfm-put-headline (acc headline)
+  (let* ((anchor (org-gfm-anchor-from-headline headline)))
+    (if (assoc anchor acc)
+        (org-gfm-put-headline-dup acc headline anchor 1)
+      (cons (cons anchor headline) acc))))
+
+
+(defun org-gfm-format-toc (anchor-and-headline)
   "Return an appropriate table of contents entry for HEADLINE. INFO is a
 plist used as a communication channel."
-  (let* ((title (org-export-data
+  (let* ((headline (cdr anchor-and-headline))
+         (title (org-export-data
                  (org-export-get-alt-title headline info) info))
          (level (1- (org-element-property :level headline)))
          (indent (concat (make-string (* level 2) ? )))
-         (anchor (or (org-element-property :CUSTOM_ID headline)
-                     (org-export-get-reference headline info))))
+         (anchor (car anchor-and-headline)))
     (concat indent "- [" title "]" "(#" anchor ")")))
 
 
@@ -286,7 +348,8 @@ CONTENTS is the transcoded contents string.  INFO is a plist
 holding export options."
   (let* ((depth (plist-get info :with-toc))
          (headlines (and depth (org-export-collect-headlines info depth)))
-         (toc-string (or (mapconcat 'org-gfm-format-toc headlines "\n") ""))
+         (anchors-to-headlines (reverse (seq-reduce 'org-gfm-put-headline headlines '())))
+         (toc-string (or (mapconcat 'org-gfm-format-toc anchors-to-headlines "\n") ""))
          (toc-tail (if headlines "\n\n" "")))
     (org-trim (concat toc-string toc-tail contents "\n" (org-gfm-footnote-section info)))))
 
