@@ -60,6 +60,7 @@
                      (src-block . org-gfm-src-block)
                      (table-cell . org-gfm-table-cell)
                      (table-row . org-gfm-table-row)
+                     (timestamp . org-gfm-timestamp)
                      (table . org-gfm-table)))
 
 
@@ -230,6 +231,16 @@ contextual information."
                        gfm-table-right-border "\n"))))))
     (concat (when no-header (funcall build-dummy-header))
             (replace-regexp-in-string "\n\n" "\n" contents))))
+
+;;;; Timestamp
+
+(defun org-gfm-timestamp (timestamp contents info)
+  "Transcode PARAGRAPH element into Github Flavoured Markdown format.
+CONTENTS is the paragraph contents.  INFO is a plist used as a
+communication channel."
+  (let ((value (org-html-plain-text (org-timestamp-translate timestamp) info)))
+    (format "%s" value))
+  )
 
 
 ;;;; Table of contents
