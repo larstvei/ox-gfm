@@ -29,6 +29,7 @@
 
 (require 'ox-md)
 (require 'ox-publish)
+
 
 ;;; User-Configurable Variables
 
@@ -62,7 +63,6 @@
                      (table-row . org-gfm-table-row)
                      (table . org-gfm-table)))
 
-
 
 ;;; Transcode Functions
 
@@ -80,7 +80,6 @@ communication channel."
         (replace-regexp-in-string "\\`#" "\\#" contents nil t)
       contents)))
 
-
 ;;;; Src Block
 
 (defun org-gfm-src-block (src-block contents info)
@@ -97,7 +96,6 @@ channel."
 
 (defalias 'org-gfm-example-block #'org-gfm-src-block)
 
-
 ;;;; Strike-Through
 
 (defun org-gfm-strike-through (strike-through contents info)
@@ -105,7 +103,6 @@ channel."
 CONTENTS is the text with strike-through markup.  INFO is a plist
 holding contextual information."
   (format "~~%s~~" contents))
-
 
 ;;;; Table-Common
 
@@ -149,7 +146,6 @@ the column."
             info)
           (puthash column max-width width-cookies))))))
 
-
 (defun org-gfm-make-hline-builder (table info char)
   "Return a function to build horizontal line in TABLE with given
 CHAR. INFO is a plist used as a communication channel."
@@ -158,7 +154,6 @@ CHAR. INFO is a plist used as a communication channel."
        (when (< max-width 1)
          (setq max-width 1))
        (make-string max-width ,char))))
-
 
 ;;;; Table-Cell
 
@@ -176,7 +171,6 @@ of the cell. INFO is a plist used as a communication channel."
                   (make-string (max 0 (- width (string-width data)))
                                ?\s)))
     (concat left-border contents right-border)))
-
 
 ;;;; Table-Row
 
@@ -201,8 +195,6 @@ channel."
                                  gfm-table-separator)
                       gfm-table-right-border))))
     contents))
-
-
 
 ;;;; Table
 
@@ -231,7 +223,6 @@ contextual information."
     (concat (when no-header (funcall build-dummy-header))
             (replace-regexp-in-string "\n\n" "\n" contents))))
 
-
 ;;;; Table of contents
 
 (defun org-gfm-format-toc (headline)
@@ -244,7 +235,6 @@ plist used as a communication channel."
          (anchor (or (org-element-property :CUSTOM_ID headline)
                      (org-export-get-reference headline info))))
     (concat indent "- [" title "]" "(#" anchor ")")))
-
 
 ;;;; Footnote section
 
@@ -277,7 +267,6 @@ INFO is a plist used as a communication channel."
          fn-alist
          "\n"))))))
 
-
 ;;;; Template
 
 (defun org-gfm-inner-template (contents info)
@@ -289,9 +278,6 @@ holding export options."
          (toc-string (or (mapconcat 'org-gfm-format-toc headlines "\n") ""))
          (toc-tail (if headlines "\n\n" "")))
     (org-trim (concat toc-string toc-tail contents "\n" (org-gfm-footnote-section info)))))
-
-
-
 
 
 ;;; Interactive function
@@ -323,7 +309,6 @@ non-nil."
   (org-export-to-buffer 'gfm "*Org GFM Export*"
     async subtreep visible-only nil nil (lambda () (text-mode))))
 
-
 ;;;###autoload
 (defun org-gfm-convert-region-to-md ()
   "Assume the current region has org-mode syntax, and convert it
@@ -332,7 +317,6 @@ For example, you can write an itemized list in org-mode syntax in
 a Markdown buffer and use this command to convert it."
   (interactive)
   (org-export-replace-region-by 'gfm))
-
 
 ;;;###autoload
 (defun org-gfm-export-to-markdown (&optional async subtreep visible-only)
