@@ -1,4 +1,4 @@
-;;; ox-gfm.el --- Github Flavored Markdown Back-End for Org Export Engine
+;;; ox-gfm.el --- Github Flavored Markdown Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2014-2017 Lars Tveito
 
@@ -82,9 +82,9 @@ communication channel."
 
 ;;;; Src Block
 
-(defun org-gfm-src-block (src-block contents info)
+(defun org-gfm-src-block (src-block _contents info)
   "Transcode SRC-BLOCK element into Github Flavored Markdown format.
-CONTENTS is nil.  INFO is a plist used as a communication
+_CONTENTS is nil.  INFO is a plist used as a communication
 channel."
   (let* ((lang (org-element-property :language src-block))
          (code (org-export-format-code-default src-block info))
@@ -98,9 +98,9 @@ channel."
 
 ;;;; Strike-Through
 
-(defun org-gfm-strike-through (strike-through contents info)
-  "Transcode STRIKE-THROUGH from Org to Markdown (GFM).
-CONTENTS is the text with strike-through markup.  INFO is a plist
+(defun org-gfm-strike-through (_strike-through contents _info)
+  "Transcode _STRIKE-THROUGH from Org to Markdown (GFM).
+CONTENTS is the text with strike-through markup.  _INFO is a plist
 holding contextual information."
   (format "~~%s~~" contents))
 
@@ -149,11 +149,11 @@ or by the maximum cell with in the column."
 (defun org-gfm-make-hline-builder (table info char)
   "Return a function to build horizontal line in TABLE with given CHAR.
 INFO is a plist used as a communication channel."
-  `(lambda (col)
-     (let ((max-width (max 3 (org-gfm-table-col-width table col info))))
-       (when (< max-width 1)
-         (setq max-width 1))
-       (make-string max-width ,char))))
+  (lambda (col)
+    (let ((max-width (max 3 (org-gfm-table-col-width table col info))))
+      (when (< max-width 1)
+        (setq max-width 1))
+      (make-string max-width char))))
 
 ;;;; Table-Cell
 
@@ -186,7 +186,6 @@ communication channel."
                       table-row
                       (org-element-map table 'table-row 'identity info))))
       (let* ((table (org-export-get-parent-table table-row))
-             (header-p (org-export-table-row-starts-header-p table-row info))
              (build-rule (org-gfm-make-hline-builder table info ?-))
              (cols (cdr (org-export-table-dimensions table info))))
         (setq contents
@@ -226,7 +225,7 @@ contextual information."
 
 ;;;; Table of contents
 
-(defun org-gfm-format-toc (headline)
+(defun org-gfm-format-toc (headline info)
   "Return an appropriate table of contents entry for HEADLINE."
   (let* ((title (org-export-data
                  (org-export-get-alt-title headline info) info))
@@ -243,7 +242,7 @@ contextual information."
 INFO is a plist used as a communication channel."
   (let* ((fn-alist (org-export-collect-footnote-definitions info))
          (fn-alist
-          (cl-loop for (n type raw) in fn-alist collect
+          (cl-loop for (n _type raw) in fn-alist collect
                    (cons n (org-trim (org-export-data raw info))))))
     (when fn-alist
       (format
@@ -275,7 +274,10 @@ CONTENTS is the transcoded contents string.  INFO is a plist
 holding export options."
   (let* ((depth (plist-get info :with-toc))
          (headlines (and depth (org-export-collect-headlines info depth)))
-         (toc-string (or (mapconcat 'org-gfm-format-toc headlines "\n") ""))
+         (toc-string (or (mapconcat (lambda (headline)
+                                      (org-gfm-format-toc headline info))
+                                    headlines "\n")
+                         ""))
          (toc-tail (if headlines "\n\n" "")))
     (org-trim (concat toc-string toc-tail contents "\n" (org-gfm-footnote-section info)))))
 
