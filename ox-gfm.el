@@ -206,21 +206,20 @@ contextual information."
          (no-header (or (<= (length rows) 1)))
          (cols (cdr (org-export-table-dimensions table info)))
          (build-dummy-header
-          (function
-           (lambda ()
-             (let ((build-empty-cell (org-gfm-make-hline-builder table info ?\s))
-                   (build-rule (org-gfm-make-hline-builder table info ?-))
-                   (columns (number-sequence 0 (- cols 1))))
-               (concat gfm-table-left-border
-                       (mapconcat (lambda (col) (funcall build-empty-cell col))
-                                  columns
-                                  gfm-table-separator)
-                       gfm-table-right-border "\n" gfm-table-left-border
-                       (mapconcat (lambda (col) (funcall build-rule col))
-                                  columns
-                                  gfm-table-separator)
-                       gfm-table-right-border "\n"))))))
-    (concat (when no-header (funcall build-dummy-header))
+          (lambda ()
+            (let ((build-empty-cell (org-gfm-make-hline-builder table info ?\s))
+                  (build-rule (org-gfm-make-hline-builder table info ?-))
+                  (columns (number-sequence 0 (- cols 1))))
+              (concat gfm-table-left-border
+                      (mapconcat (lambda (col) (funcall build-empty-cell col))
+                                 columns
+                                 gfm-table-separator)
+                      gfm-table-right-border "\n" gfm-table-left-border
+                      (mapconcat (lambda (col) (funcall build-rule col))
+                                 columns
+                                 gfm-table-separator)
+                      gfm-table-right-border "\n")))))
+    (concat (and no-header (funcall build-dummy-header))
             (replace-regexp-in-string "\n\n" "\n" contents))))
 
 ;;;; Table of contents
